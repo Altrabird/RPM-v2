@@ -1668,6 +1668,15 @@ function renderBooksHistory(subj, cls, students) {
     </div>`).join('');
 }
 
+function switchBooksClass() {
+  const clsSel = document.getElementById('booksCls');
+  ui.booksClass = clsSel.value;
+  const students = getClassStudents('science', ui.booksClass);
+  booksSelected = new Set();
+  renderBooksStudentGrid(students);
+  renderBooksHistory('science', ui.booksClass, students);
+}
+
 function switchBooksSubj(subj) {
   ui.booksSubject = subj;
   document.querySelectorAll('#page-books .subj-tab').forEach(t => {
@@ -1705,6 +1714,18 @@ function renderPointsPage() {
     '<option value="__ALL__">\u2014 Semua Murid \u2014</option>' +
     students.map(n => `<option value="${n}">${n}</option>`).join('');
 
+  renderPointsBoard();
+}
+
+function switchPointsClass() {
+  const clsSel = document.getElementById('ptsCls');
+  ui.pointsClass = clsSel.value;
+  // Update senarai murid tanpa rebuild dropdown
+  const stuSel = document.getElementById('ptsStudent');
+  const students = getClassStudents('science', ui.pointsClass);
+  stuSel.innerHTML =
+    '<option value="__ALL__">\u2014 Semua Murid \u2014</option>' +
+    students.map(n => `<option value="${n}">${n}</option>`).join('');
   renderPointsBoard();
 }
 
