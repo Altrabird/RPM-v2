@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="theme-color" content="#1e1b4b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>RPM — Rekod Perkembangan Murid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'serif'],
+      },
+      colors: {
+        primary: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81', 950:'#1e1b4b' },
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="overlay-bg" class="overlay-bg" onclick="closeSidebar()"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">
+        <div class="logo-icon">R</div>
+        <div>
+          <div class="brand-name">RPM</div>
+        </div>
+      </div>
+      <div class="brand-sub">Rekod Perkembangan Murid</div>
+    </div>
+
+    <div class="sidebar-school">
+      <div class="school-name">
+        <strong id="sb-school">SK Bandar Tawau</strong>
+        <span id="sb-teacher">Guru: Harsidi bin Junick</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Utama</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard
+      </div>
+
+      <div class="nav-section">Data Murid</div>
+      <div class="nav-item" data-page="entry">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+        Kemasukan Data
+        <span class="nav-badge" id="nb-pending">0</span>
+      </div>
+      <div class="nav-item" data-page="books">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><polyline points="9 9 15 9"/><polyline points="9 13 15 13"/></svg>
+        Semakan Buku
+      </div>
+      <div class="nav-item" data-page="points">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Mata Terkumpul
+      </div>
+      <div class="nav-item" data-page="reports">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Laporan Individu
+      </div>
+      <div class="nav-item" data-page="compare">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        Bandingkan Kelas
+      </div>
+
+      <div class="nav-section">Cetak</div>
+      <div class="nav-item" data-page="print">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Cetak Laporan
+      </div>
+
+      <div class="nav-section">Sistem</div>
+      <div class="nav-item" data-page="manage">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        Pengurusan Murid
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        Tetapan & Sync
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sync-pill" onclick="syncToSheets()">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Semak sambungan...</span>
+        <svg style="width:13px;height:13px;margin-left:auto;opacity:.4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-actions no-print">
+        <button class="btn btn-secondary btn-sm" onclick="exportData()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="syncToSheets()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          Sync
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGES -->
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="section-title">Dashboard</div>
+        <div class="section-sub" id="dash-sub">Gambaran keseluruhan prestasi murid</div>
+
+        <div class="metrics-row" id="dashMetrics"></div>
+
+        <div class="grid-2">
+          <div class="card data-card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect width="4" height="7" x="7" y="10" rx="1"/><rect width="4" height="12" x="15" y="5" rx="1"/></svg>
+                Taburan Tahap Penguasaan
+              </div>
+              <div class="mini-tabs" id="distSubjTabs">
+                <button class="mini-tab active" onclick="switchDistChart('science')">Sains</button>
+                <button class="mini-tab" onclick="switchDistChart('english')">BI</button>
+                <button class="mini-tab" onclick="switchDistChart('all')">Semua</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas id="distChart" height="180"></canvas>
+            </div>
+          </div>
+
+          <div class="card data-card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Prestasi Mengikut Topik
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas id="topicChart" height="180"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              Perbandingan Kelas — Purata TP
+            </div>
+          </div>
+          <div class="card-body">
+            <canvas id="classCompareChart" height="120"></canvas>
+          </div>
+        </div>
+
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              Murid Belum Dinilai
+            </div>
+            <span id="notifCount" style="font-size:12px;color:var(--ink3)"></span>
+          </div>
+          <div class="card-body" id="notifList">
+            <div class="empty-state"><p>Tiada notifikasi.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA ENTRY -->
+      <div class="page" id="page-entry">
+        <div class="section-title">Kemasukan Data</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+          <div class="section-sub" style="margin-bottom:0">Masukkan Tahap Penguasaan (TP) bagi setiap Standard Pembelajaran</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="view-toggle">
+              <button class="view-btn" id="viewBtnCard" onclick="switchEntryView('card')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                Kad
+              </button>
+              <button class="view-btn active" id="viewBtnGrid" onclick="switchEntryView('grid')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                Grid
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="subject-tabs" id="entrySubjTabs">
+          <div class="subj-tab active science" data-subj="science" onclick="switchEntrySubject('science')">
+            <span class="subj-dot dot-science"></span>Sains Tahun 2
+          </div>
+          <div class="subj-tab english" data-subj="english" onclick="switchEntrySubject('english')">
+            <span class="subj-dot dot-english"></span>BI Tahun 3
+          </div>
+        </div>
+
+        <div id="entry-science">
+          <div class="class-tabs" id="scienceClassTabs"></div>
+          <div class="topic-wrap" id="scienceTopicTabs"></div>
+          <div id="scienceStudentList"></div>
+        </div>
+
+        <div id="entry-english" style="display:none">
+          <div class="topic-wrap" id="englishSkillTabs"></div>
+          <div id="englishStudentList"></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="section-title">Laporan Individu</div>
+        <div class="section-sub">Rekod lengkap perkembangan seorang murid</div>
+
+        <div class="card mb-24">
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Subjek</label>
+                <select class="form-select" id="rptSubjSel" onchange="updateReportStudentList()">
+                  <option value="science">Sains Tahun 2</option>
+                  <option value="english">BI Tahun 3</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0" id="rptClassWrap">
+                <label class="form-label">Kelas</label>
+                <select class="form-select" id="rptClassSel" onchange="updateReportStudentList()"></select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:12px;margin-bottom:0">
+              <label class="form-label">Pilih Murid</label>
+              <select class="form-select" id="rptStudentSel" onchange="renderStudentReport()">
+                <option value="">-- Pilih murid --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="reportOutput"></div>
+      </div>
+
+      <!-- SEMAKAN BUKU -->
+      <div class="page" id="page-books">
+        <div class="section-title">Semakan Buku</div>
+        <div class="section-sub">Rekod semakan buku murid — setiap semakan memberikan +2 mata</div>
+
+        <div class="subject-tabs mb-20">
+          <div class="subj-tab active science" onclick="switchBooksSubj('science')">
+            <span class="subj-dot dot-science"></span>Sains Tahun 2
+          </div>
+          <div class="subj-tab english" onclick="switchBooksSubj('english')">
+            <span class="subj-dot dot-english"></span>BI Tahun 3
+          </div>
+        </div>
+
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+              Rekod Semakan Baharu
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group" style="margin:0" id="books-class-wrap">
+                <label class="form-label">Kelas</label>
+                <select class="form-select" id="booksCls" onchange="renderBooksPage()"></select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Tarikh Semakan</label>
+                <input type="date" class="form-input" id="booksDate">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nota / Catatan (pilihan)</label>
+              <input type="text" class="form-input" id="booksNote" placeholder="cth: Latihan m/s 12-15 disemak">
+            </div>
+            <label class="form-label" style="margin-bottom:8px">Pilih Murid (klik untuk tandai)</label>
+            <div id="booksStudentGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-success" onclick="saveBookChecks()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                Simpan Semakan (+2 mata setiap murid)
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="selectAllBooks()">Pilih Semua</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearAllBooks()">Nyahpilih Semua</button>
+              <span id="booksSelectedCount" style="font-size:13px;color:var(--ink3)">0 murid dipilih</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Rekod Semakan</div>
+            <span id="booksTotalChecks" style="font-size:12px;color:var(--ink3)"></span>
+          </div>
+          <div class="table-wrap" id="booksHistoryWrap">
+            <div class="empty-state"><p>Tiada rekod semakan lagi.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATA TERKUMPUL -->
+      <div class="page" id="page-points">
+        <div class="section-title">Mata Terkumpul</div>
+        <div class="section-sub">Papan mata murid — jana daripada taksiran TP, semakan buku dan aktiviti tambahan</div>
+
+        <div class="subject-tabs mb-20">
+          <div class="subj-tab active science" onclick="switchPointsSubj('science')">
+            <span class="subj-dot dot-science"></span>Sains Tahun 2
+          </div>
+          <div class="subj-tab english" onclick="switchPointsSubj('english')">
+            <span class="subj-dot dot-english"></span>BI Tahun 3
+          </div>
+        </div>
+
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Tambah / Tolak Mata Manual
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group" style="margin:0" id="pts-class-wrap">
+                <label class="form-label">Kelas</label>
+                <select class="form-select" id="ptsCls" onchange="renderPointsPage()"></select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Murid</label>
+                <select class="form-select" id="ptsStudent">
+                  <option value="__ALL__">— Semua Murid —</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Mata</label>
+                <input type="number" class="form-input" id="ptsAmount" min="1" max="100" value="5" placeholder="cth: 5">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Jenis</label>
+                <select class="form-select" id="ptsType">
+                  <option value="manual">+ Tambah Mata</option>
+                  <option value="deduct">- Tolak Mata</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label class="form-label">Sebab / Aktiviti</label>
+              <input type="text" class="form-input" id="ptsReason" placeholder="cth: Kuiz Bab 1, Tugasan, Pertandingan...">
+            </div>
+            <button class="btn btn-primary" onclick="addManualPoints()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Kemas Kini Mata
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Papan Mata — Ranking Kelas</div>
+            <div class="mini-tabs" id="ptsViewTabs">
+              <button class="mini-tab active" onclick="switchPtsView('rank')">Ranking</button>
+              <button class="mini-tab" onclick="switchPtsView('log')">Log</button>
+            </div>
+          </div>
+          <div id="pointsBoardWrap">
+            <div class="empty-state"><p>Tiada data mata lagi.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <div class="page" id="page-compare">
+        <div class="section-title">Bandingkan Kelas</div>
+        <div class="section-sub">Analisis prestasi antara kelas untuk setiap topik</div>
+
+        <div class="subject-tabs mb-20">
+          <div class="subj-tab active science" data-subj="science" onclick="switchCompare('science')">
+            <span class="subj-dot dot-science"></span>Sains Tahun 2
+          </div>
+          <div class="subj-tab english" data-subj="english" onclick="switchCompare('english')">
+            <span class="subj-dot dot-english"></span>BI Tahun 3
+          </div>
+        </div>
+
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">Purata TP Setiap Kelas Mengikut Topik</div>
+          </div>
+          <div class="card-body">
+            <canvas id="compareRadarChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Jadual Perbandingan Terperinci</div>
+          </div>
+          <div class="card-body table-wrap" id="compareTable"></div>
+        </div>
+      </div>
+
+      <!-- MANAGE -->
+      <div class="page" id="page-manage">
+        <div class="section-title">Pengurusan Murid</div>
+        <div class="section-sub">Urus senarai nama murid bagi setiap kelas</div>
+
+        <div class="subject-tabs mb-20">
+          <div class="subj-tab active science" onclick="switchManageSubj('science')">
+            <span class="subj-dot dot-science"></span>Sains Tahun 2
+          </div>
+          <div class="subj-tab english" onclick="switchManageSubj('english')">
+            <span class="subj-dot dot-english"></span>BI Tahun 3
+          </div>
+        </div>
+
+        <div id="manage-science">
+          <div class="class-tabs" id="manageClassTabs"></div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Senarai Nama Murid</div>
+              <button class="btn btn-primary btn-sm" onclick="saveManageNames()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                Simpan
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-info" style="margin-bottom:16px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                Masukkan satu nama setiap baris. Gunakan nama penuh seperti dalam rekod sekolah.
+              </div>
+              <textarea class="form-textarea" id="manageNamesTA" rows="20" style="font-size:13px;line-height:1.8"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="manage-english" style="display:none">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Murid BI Tahun 3</div>
+              <button class="btn btn-primary btn-sm" onclick="saveEnglishNames()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                Simpan
+              </button>
+            </div>
+            <div class="card-body">
+              <textarea class="form-textarea" id="engNamesTA" rows="20" style="font-size:13px;line-height:1.8"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="section-title">Tetapan & Sync</div>
+        <div class="section-sub">Konfigurasi maklumat sekolah dan sambungan Google Sheets</div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Maklumat Sekolah</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Nama Sekolah</label>
+                <input type="text" class="form-input" id="setSchool" placeholder="SK Bandar Tawau">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alamat Sekolah</label>
+                <input type="text" class="form-input" id="setAddress" placeholder="P/S 214, 91007 Tawau, Sabah">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kod Sekolah</label>
+                <input type="text" class="form-input" id="setCode" placeholder="XBA3051">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nama Guru</label>
+                <input type="text" class="form-input" id="setTeacher" placeholder="Nama Penuh Guru">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Tahun Semasa</label>
+                <input type="text" class="form-input" id="setYear" placeholder="2025">
+              </div>
+              <button class="btn btn-primary" style="margin-top:16px" onclick="saveSettings()">Simpan Tetapan</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Google Sheets Sync</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Apps Script Web App URL</label>
+                <input type="text" class="form-input" id="setScriptURL" placeholder="https://script.google.com/macros/s/...">
+              </div>
+              <div class="alert alert-info" style="margin-bottom:16px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <div>Deploy Apps Script sebagai <strong>Web App</strong> dengan akses <strong>"Anyone"</strong>. Salin URL dan tampal di sini.</div>
+              </div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn btn-success" onclick="saveAndTestSync()">Simpan & Uji</button>
+                <button class="btn btn-secondary" onclick="loadFromSheets()">Load dari Sheets</button>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="card-title" style="margin-bottom:8px">Export / Import Data</div>
+              <div style="font-size:12px;color:var(--ink3);margin-bottom:12px">Eksport semua data ke Excel atau CSV. Import semula dari fail Excel/CSV.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                <button class="btn btn-success btn-sm" onclick="exportExcel()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2m4 0h2M8 17h2m4 0h2"/></svg>
+                  Muat Turun Excel (.xlsx)
+                </button>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                <button class="btn btn-secondary btn-sm" onclick="exportCSVSains()">CSV Sains</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportCSVBI()">CSV BI</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportCSVMata()">CSV Mata</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportCSVBuku()">CSV Semakan Buku</button>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+                  Import Excel / CSV
+                  <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFile(event)">
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRINT -->
+      <div class="page" id="page-print">
+        <div class="section-title">Cetak Laporan</div>
+        <div class="section-sub">Jana laporan bercetak mengikut topik, murid atau keseluruhan subjek</div>
+
+        <div class="print-mode-tabs mb-20">
+          <button class="print-mode-btn active" data-mode="student" onclick="switchPrintMode('student')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Laporan Murid
+          </button>
+          <button class="print-mode-btn" data-mode="topic" onclick="switchPrintMode('topic')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect width="4" height="7" x="7" y="10" rx="1"/><rect width="4" height="12" x="15" y="5" rx="1"/></svg>
+            Laporan Topik
+          </button>
+          <button class="print-mode-btn" data-mode="subject" onclick="switchPrintMode('subject')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Laporan Subjek Penuh
+          </button>
+        </div>
+
+        <!-- Mode: Murid -->
+        <div id="print-panel-student">
+          <div class="card mb-20">
+            <div class="card-header"><div class="card-title">Tetapan Laporan Murid</div></div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin:0">
+                  <label class="form-label">Subjek</label>
+                  <select class="form-select" id="ps-subj" onchange="updatePrintStudentOptions()">
+                    <option value="science">Sains Tahun 2</option>
+                    <option value="english">BI Tahun 3</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0" id="ps-class-wrap">
+                  <label class="form-label">Kelas</label>
+                  <select class="form-select" id="ps-class" onchange="updatePrintStudentOptions()"></select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px">
+                <label class="form-label">Pilih Murid</label>
+                <select class="form-select" id="ps-student" onchange="previewStudentReport()">
+                  <option value="__ALL__">— Semua Murid (cetak satu-satu) —</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+                <button class="btn btn-primary" onclick="doPrint('student')">Cetak</button>
+                <button class="btn btn-secondary" onclick="previewStudentReport()">Pratonton</button>
+              </div>
+            </div>
+          </div>
+          <div id="ps-preview" class="print-preview-area"></div>
+        </div>
+
+        <!-- Mode: Topik -->
+        <div id="print-panel-topic" style="display:none">
+          <div class="card mb-20">
+            <div class="card-header"><div class="card-title">Tetapan Laporan Topik</div></div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin:0">
+                  <label class="form-label">Subjek</label>
+                  <select class="form-select" id="pt-subj" onchange="updatePrintTopicOptions()">
+                    <option value="science">Sains Tahun 2</option>
+                    <option value="english">BI Tahun 3</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0" id="pt-class-wrap">
+                  <label class="form-label">Kelas</label>
+                  <select class="form-select" id="pt-class" onchange="updatePrintTopicOptions()">
+                    <option value="__ALL__">Semua Kelas</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px">
+                <label class="form-label">Topik / Kemahiran</label>
+                <select class="form-select" id="pt-topic" onchange="previewTopicReport()"></select>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+                <button class="btn btn-primary" onclick="doPrint('topic')">Cetak</button>
+                <button class="btn btn-secondary" onclick="previewTopicReport()">Pratonton</button>
+              </div>
+            </div>
+          </div>
+          <div id="pt-preview" class="print-preview-area"></div>
+        </div>
+
+        <!-- Mode: Subjek penuh -->
+        <div id="print-panel-subject" style="display:none">
+          <div class="card mb-20">
+            <div class="card-header"><div class="card-title">Tetapan Laporan Subjek Penuh</div></div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin:0">
+                  <label class="form-label">Subjek</label>
+                  <select class="form-select" id="psu-subj" onchange="updatePrintSubjectOptions()">
+                    <option value="science">Sains Tahun 2</option>
+                    <option value="english">BI Tahun 3</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0" id="psu-class-wrap">
+                  <label class="form-label">Kelas</label>
+                  <select class="form-select" id="psu-class" onchange="previewSubjectReport()">
+                    <option value="__ALL__">Semua Kelas</option>
+                  </select>
+                </div>
+              </div>
+              <div class="alert alert-info" style="margin-top:12px;margin-bottom:4px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                Laporan penuh mengandungi semua murid, semua topik dan semua SP dalam satu dokumen.
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+                <button class="btn btn-primary" onclick="doPrint('subject')">Cetak</button>
+                <button class="btn btn-secondary" onclick="previewSubjectReport()">Pratonton</button>
+              </div>
+            </div>
+          </div>
+          <div id="psu-preview" class="print-preview-area"></div>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end main -->
+</div><!-- end layout -->
+
+<!-- MOBILE BOTTOM NAVIGATION -->
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-inner">
+    <button class="mobile-nav-btn active" data-page="dashboard" onclick="navigateTo('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      Utama
+    </button>
+    <button class="mobile-nav-btn" data-page="entry" onclick="navigateTo('entry')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+      Data
+    </button>
+    <button class="mobile-nav-btn" data-page="books" onclick="navigateTo('books')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      Buku
+    </button>
+    <button class="mobile-nav-btn" data-page="reports" onclick="navigateTo('reports')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Laporan
+    </button>
+    <button class="mobile-nav-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      Lagi
+    </button>
+  </div>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
