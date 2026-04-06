@@ -218,7 +218,7 @@ function tpBadge(avg) {
 function scheduleSyncAutoSave() {
   clearTimeout(syncTimer);
   if (!state.settings.scriptURL || state.settings.scriptURL.includes('script.google.com') === false) return;
-  syncTimer = setTimeout(syncToSheets, 4000);
+  syncTimer = setTimeout(syncToSheets, 1500);
 }
 
 // ═══════════════════════════════════════════════════════
