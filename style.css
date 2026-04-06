@@ -507,26 +507,26 @@ body {
 /* ─── METRICS ROW ─── */
 .metrics-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .metric {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   position: relative;
   overflow: hidden;
   transition: all .3s ease;
 }
 
 .metric:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
@@ -541,8 +541,8 @@ body {
 }
 
 .metric-icon {
-  width: 42px; height: 42px;
-  border-radius: 12px;
+  width: 34px; height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -551,7 +551,7 @@ body {
 
 .metric:hover .metric-icon { transform: scale(1.1) rotate(-5deg); }
 
-.metric-icon svg { width: 20px; height: 20px; }
+.metric-icon svg { width: 17px; height: 17px; }
 
 .mi-blue   { background: linear-gradient(135deg, #818cf8, #6366f1); color: white; box-shadow: 0 4px 12px rgba(99,102,241,.3); }
 .mi-green  { background: linear-gradient(135deg, #34d399, #10b981); color: white; box-shadow: 0 4px 12px rgba(16,185,129,.3); }
@@ -562,14 +562,14 @@ body {
 
 .metric-val {
   font-family: 'Fraunces', serif;
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.5px;
 }
 
 .metric-label {
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: #6366f1;
   font-weight: 600;
   text-transform: uppercase;
@@ -579,7 +579,7 @@ body {
 /* ─── SECTION TITLE ─── */
 .section-title {
   font-family: 'Fraunces', serif;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   margin-bottom: 4px;
   background: linear-gradient(135deg, #1e1b4b, #6366f1);

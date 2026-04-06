@@ -2841,29 +2841,44 @@ function buildStudentReportHTML(subj, cls, students) {
   const topics = subj === 'science' ? SCIENCE_TOPICS : ENGLISH_SKILLS;
   const subjLabel = subj === 'science' ? 'Sains Tahun 2' : 'BI Tahun 3';
   const clsLabel = subj === 'science' ? `Kelas ${cls}` : 'Tahun 3';
-  const badgeBg = subj === 'science' ? 'background:#f5f3ff;color:#7c3aed' : 'background:#ecfeff;color:#0891b2';
 
   return students.map((name, si) => {
     const overall = getStudentOverallAvg(subj, cls, name);
 
-    const topicRows = topics.map(t => {
+    // Build per-topic sections — each topic has its own SP columns
+    const topicSections = topics.map(t => {
       const avg = getStudentTopicAvg(subj, cls, name, t.id);
+      const spHeaders = t.standards.map(sp =>
+        `<th style="font-size:8px;padding:4px 3px;text-align:center;white-space:nowrap">${sp}</th>`
+      ).join('');
       const spCells = t.standards.map(sp => {
         const sc = getScore(subj, cls, name, t.id, sp);
-        return `<td>${sc ? rtpSpan(sc.tp) : '<span class="rtp-0">\u2014</span>'}</td>`;
+        return `<td style="text-align:center">${sc ? rtpSpan(sc.tp) : '<span class="rtp-0">\u2014</span>'}</td>`;
       }).join('');
 
-      return `<tr>
-        <td class="left">${t.title}</td>
-        <td>${avg > 0 ? rtpSpan(avg) : '<span class="rtp-0">\u2014</span>'}</td>
-        <td style="min-width:80px">${progBar(avg)}</td>
-        ${spCells}
-      </tr>`;
+      return `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px">
+        <thead>
+          <tr style="background:#f5f3ff">
+            <th class="left" style="padding:5px 8px;width:30%;font-size:10px" rowspan="2">${t.title}</th>
+            <th style="padding:5px 4px;font-size:9px" rowspan="2">Purata</th>
+            <th style="padding:5px 4px;font-size:9px" rowspan="2">Prestasi</th>
+            <th colspan="${t.standards.length}" style="padding:3px 4px;font-size:8px;text-align:center;border-bottom:1px solid #e5e7eb">Standard Pembelajaran (SP)</th>
+          </tr>
+          <tr style="background:#faf8ff">
+            ${spHeaders}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="left" style="padding:5px 8px;font-size:10px">${t.short}</td>
+            <td style="text-align:center">${avg > 0 ? rtpSpan(avg) : '<span class="rtp-0">\u2014</span>'}</td>
+            <td style="min-width:60px">${progBar(avg)}</td>
+            ${spCells}
+          </tr>
+        </tbody>
+      </table>`;
     }).join('');
-
-    const spHeaders = topics.flatMap(t => t.standards).map(sp =>
-      `<th style="font-size:8px;padding:4px 2px">${sp}</th>`
-    ).join('');
 
     const pageBreak = si < students.length - 1
       ? '<div class="page-break"></div>' : '';
@@ -2881,24 +2896,12 @@ function buildStudentReportHTML(subj, cls, students) {
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th class="left" style="width:28%">Topik / Kemahiran</th>
-          <th>Purata TP</th>
-          <th>Prestasi</th>
-          ${spHeaders}
-        </tr>
-      </thead>
-      <tbody>
-        ${topicRows}
-        <tr class="summary-row">
-          <td class="left">PURATA KESELURUHAN</td>
-          <td colspan="2">${overall > 0 ? rtpSpan(overall) : '\u2014'}</td>
-          <td colspan="${topics.flatMap(t=>t.standards).length}"></td>
-        </tr>
-      </tbody>
-    </table>
+    ${topicSections}
+
+    <div style="margin-top:6px;padding:8px 12px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;gap:12px;border:1px solid #bbf7d0">
+      <strong style="font-size:11px">PURATA KESELURUHAN</strong>
+      <span style="margin-left:auto;font-size:14px;font-weight:700">${overall > 0 ? rtpSpan(overall) : '\u2014'}</span>
+    </div>
 
     <div class="rpm-sig-row">
       <div class="rpm-sig-box">Tandatangan Guru<br><br><br></div>
