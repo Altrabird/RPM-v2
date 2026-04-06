@@ -1786,3 +1786,195 @@ tbody tr:hover { background: var(--primary-soft); }
 
 /* ─── CHARTS ─── */
 .chart-container { position: relative; }
+
+/* ─── THEME TOGGLE BUTTON ─── */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .3s ease;
+  color: var(--ink);
+}
+.theme-toggle:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: rotate(15deg);
+}
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-icon-sun { display: none; }
+html[data-theme="dark"] .theme-icon-moon { display: none; }
+html[data-theme="dark"] .theme-icon-sun { display: block; }
+
+/* ═══════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+  --ink: #e8e6f0;
+  --ink2: #c4b5fd;
+  --ink3: #a78bfa;
+  --ink4: #6d5fad;
+  --surface: #0c0a18;
+  --card: #16132a;
+  --border: #2e2a4a;
+  --border2: #3d3760;
+
+  --primary: #818cf8;
+  --primary-soft: rgba(99,102,241,.12);
+  --primary-glow: rgba(129,140,248,.25);
+  --accent2: #34d399;
+  --accent2-soft: rgba(16,185,129,.12);
+  --warn: #fbbf24;
+  --warn-soft: rgba(245,158,11,.12);
+  --danger: #fb7185;
+  --danger-soft: rgba(244,63,94,.12);
+
+  --science: #a78bfa;
+  --science-soft: rgba(139,92,246,.12);
+  --english: #22d3ee;
+  --english-soft: rgba(6,182,212,.12);
+
+  --tp1-bg: linear-gradient(135deg,#2a1520,#3d1a2a);
+  --tp2-bg: linear-gradient(135deg,#2a1f15,#3d2a18);
+  --tp3-bg: linear-gradient(135deg,#2a2815,#3d3518);
+  --tp4-bg: linear-gradient(135deg,#152a1c,#183d24);
+  --tp5-bg: linear-gradient(135deg,#151e2a,#182b3d);
+  --tp6-bg: linear-gradient(135deg,#1f152a,#2a183d);
+
+  --grad-sidebar: linear-gradient(180deg, #080614 0%, #110e24 25%, #1a1340 60%, #251a55 85%, #2e1a60 100%);
+  --grad-primary: linear-gradient(135deg, #818cf8, #a78bfa);
+  --grad-success: linear-gradient(135deg, #34d399, #10b981);
+  --grad-danger: linear-gradient(135deg, #fb7185, #f43f5e);
+  --grad-amber: linear-gradient(135deg, #fbbf24, #f59e0b);
+
+  --shadow: 0 1px 3px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.25), 0 12px 36px rgba(0,0,0,.3);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,.4);
+  --shadow-glow: 0 4px 20px rgba(129,140,248,.2);
+}
+
+/* Topbar dark */
+html[data-theme="dark"] .topbar {
+  background: rgba(22,19,42,.9);
+  border-bottom-color: rgba(46,42,74,.6);
+}
+
+/* Sidebar dark — text adjustments */
+html[data-theme="dark"] .sidebar {
+  border-right-color: rgba(46,42,74,.4);
+}
+
+/* Table headers dark */
+html[data-theme="dark"] thead th {
+  background: var(--card) !important;
+  color: var(--ink);
+}
+html[data-theme="dark"] .entry-table thead th {
+  background: linear-gradient(135deg, #1a1340, #16132a) !important;
+}
+
+/* Auto-row dark */
+html[data-theme="dark"] .entry-table tr.auto-row td {
+  background: linear-gradient(135deg, #1a1340, #110e24) !important;
+  color: #c4b5fd !important;
+}
+
+/* Card header dark */
+html[data-theme="dark"] .card-header {
+  background: rgba(30,27,75,.3);
+  border-bottom-color: var(--border);
+}
+
+/* Modal dark */
+html[data-theme="dark"] .modal-overlay {
+  background: rgba(0,0,0,.6);
+}
+html[data-theme="dark"] .modal-title {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Section title dark */
+html[data-theme="dark"] .section-title {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Metric accent strip dark */
+html[data-theme="dark"] .metric::before {
+  background: var(--grad-primary);
+}
+
+/* Form inputs dark */
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .form-select,
+html[data-theme="dark"] .form-textarea {
+  background: #1a1730;
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+/* Cell select dark */
+html[data-theme="dark"] .cell-select {
+  background: #1a1730;
+  color: var(--ink);
+}
+
+/* Tabs dark */
+html[data-theme="dark"] .mini-tab {
+  color: var(--ink4);
+}
+html[data-theme="dark"] .mini-tab.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* Toggle button dark */
+html[data-theme="dark"] .theme-toggle {
+  background: #1a1730;
+  border-color: #3d3760;
+  color: #fbbf24;
+}
+html[data-theme="dark"] .theme-toggle:hover {
+  background: rgba(251,191,36,.12);
+  border-color: #fbbf24;
+}
+
+/* Mobile nav dark */
+html[data-theme="dark"] .mobile-nav {
+  background: rgba(22,19,42,.95);
+  border-top-color: var(--border);
+}
+
+/* Notification cards dark */
+html[data-theme="dark"] .notif-card {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Book student chips dark */
+html[data-theme="dark"] .book-student-chip {
+  background: #1a1730;
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+/* Alert dark */
+html[data-theme="dark"] .alert-warn {
+  background: rgba(245,158,11,.08);
+  border-color: rgba(245,158,11,.2);
+}
+
+/* Print — ignore dark mode */
+@media print {
+  html[data-theme="dark"] { color-scheme: light; }
+  html[data-theme="dark"] body { background: white; color: #1e1b4b; }
+  html[data-theme="dark"] .card { background: white; border-color: #ccc; }
+}
