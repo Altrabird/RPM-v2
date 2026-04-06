@@ -102,7 +102,7 @@ tailwind.config = {
       </div>
       <div class="nav-item" data-page="settings">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        Tetapan & Sync
+        Tetapan
       </div>
     </nav>
 
@@ -124,10 +124,6 @@ tailwind.config = {
       </button>
       <div class="topbar-title" id="pageTitle">Dashboard</div>
       <div class="topbar-actions no-print">
-        <button class="btn btn-secondary btn-sm" onclick="exportData()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          Export
-        </button>
         <button class="btn btn-primary btn-sm" onclick="syncToSheets()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
           Sync
@@ -490,10 +486,10 @@ tailwind.config = {
 
       <!-- SETTINGS -->
       <div class="page" id="page-settings">
-        <div class="section-title">Tetapan & Sync</div>
-        <div class="section-sub">Konfigurasi maklumat sekolah dan sambungan Google Sheets</div>
+        <div class="section-title">Tetapan</div>
+        <div class="section-sub">Konfigurasi maklumat sekolah</div>
 
-        <div class="grid-2">
+        <div style="max-width:560px">
           <div class="card">
             <div class="card-header"><div class="card-title">Maklumat Sekolah</div></div>
             <div class="card-body">
@@ -518,48 +514,6 @@ tailwind.config = {
                 <input type="text" class="form-input" id="setYear" placeholder="2025">
               </div>
               <button class="btn btn-primary" style="margin-top:16px" onclick="saveSettings()">Simpan Tetapan</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">Google Sheets Sync</div></div>
-            <div class="card-body">
-              <div class="form-group">
-                <label class="form-label">Apps Script Web App URL</label>
-                <input type="text" class="form-input" id="setScriptURL" placeholder="https://script.google.com/macros/s/...">
-              </div>
-              <div class="alert alert-info" style="margin-bottom:16px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                <div>Deploy Apps Script sebagai <strong>Web App</strong> dengan akses <strong>"Anyone"</strong>. Salin URL dan tampal di sini.</div>
-              </div>
-              <div style="display:flex;gap:10px;">
-                <button class="btn btn-success" onclick="saveAndTestSync()">Simpan & Uji</button>
-                <button class="btn btn-secondary" onclick="loadFromSheets()">Load dari Sheets</button>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="card-title" style="margin-bottom:8px">Export / Import Data</div>
-              <div style="font-size:12px;color:var(--ink3);margin-bottom:12px">Eksport semua data ke Excel atau CSV. Import semula dari fail Excel/CSV.</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-                <button class="btn btn-success btn-sm" onclick="exportExcel()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2m4 0h2M8 17h2m4 0h2"/></svg>
-                  Muat Turun Excel (.xlsx)
-                </button>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-                <button class="btn btn-secondary btn-sm" onclick="exportCSVSains()">CSV Sains</button>
-                <button class="btn btn-secondary btn-sm" onclick="exportCSVBI()">CSV BI</button>
-                <button class="btn btn-secondary btn-sm" onclick="exportCSVMata()">CSV Mata</button>
-                <button class="btn btn-secondary btn-sm" onclick="exportCSVBuku()">CSV Semakan Buku</button>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <label class="btn btn-secondary btn-sm" style="cursor:pointer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
-                  Import Excel / CSV
-                  <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFile(event)">
-                </label>
-              </div>
             </div>
           </div>
         </div>

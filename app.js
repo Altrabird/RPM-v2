@@ -294,7 +294,7 @@ const PAGE_TITLES = {
   compare:   'Bandingkan Kelas',
   print:     'Cetak Laporan',
   manage:    'Pengurusan Murid',
-  settings:  'Tetapan & Sync'
+  settings:  'Tetapan'
 };
 
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
