@@ -1539,9 +1539,12 @@ function renderBooksPage() {
   const clsWrap = document.getElementById('books-class-wrap');
   if (subj === 'science') {
     clsWrap.style.display = '';
+    // Baca pilihan user sebelum rebuild dropdown
+    if (clsSel.value && SCIENCE_CLASSES.includes(clsSel.value)) {
+      ui.booksClass = clsSel.value;
+    }
     clsSel.innerHTML = SCIENCE_CLASSES.map(c =>
       `<option value="${c}" ${c === ui.booksClass ? 'selected' : ''}>${c}</option>`).join('');
-    ui.booksClass = clsSel.value;
   } else {
     clsWrap.style.display = 'none';
   }
@@ -1686,9 +1689,12 @@ function renderPointsPage() {
   const clsWrap = document.getElementById('pts-class-wrap');
   if (subj === 'science') {
     clsWrap.style.display = '';
+    // Baca pilihan user sebelum rebuild dropdown
+    if (clsSel.value && SCIENCE_CLASSES.includes(clsSel.value)) {
+      ui.pointsClass = clsSel.value;
+    }
     clsSel.innerHTML = SCIENCE_CLASSES.map(c =>
       `<option value="${c}" ${c === ui.pointsClass ? 'selected' : ''}>${c}</option>`).join('');
-    ui.pointsClass = clsSel.value;
   } else {
     clsWrap.style.display = 'none';
   }
@@ -2065,8 +2071,13 @@ async function loadFromSheets() {
     if (data.students)   state.students   = data.students;
     if (data.scores)     state.scores     = data.scores;
     if (data.settings)   state.settings   = Object.assign({}, state.settings, data.settings);
-    if (data.points)     state.points     = data.points;
-    if (data.bookChecks) state.bookChecks = data.bookChecks;
+    // Merge points & bookChecks — keep local data if Sheets kosong
+    if (data.points && Object.keys(data.points).length > 0) {
+      state.points = Object.assign({}, state.points, data.points);
+    }
+    if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
+      state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
+    }
     saveLocal();
     setSyncStatus('online', 'Dimuat dari Sheets');
     updatePendingBadge();
