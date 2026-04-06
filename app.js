@@ -2871,7 +2871,7 @@ function buildStudentReportHTML(subj, cls, students) {
         </thead>
         <tbody>
           <tr>
-            <td class="left" style="padding:5px 8px;font-size:10px">${t.short}</td>
+            <td class="left" style="padding:5px 8px;font-size:10px"></td>
             <td style="text-align:center">${avg > 0 ? rtpSpan(avg) : '<span class="rtp-0">\u2014</span>'}</td>
             <td style="min-width:60px">${progBar(avg)}</td>
             ${spCells}
