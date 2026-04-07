@@ -279,10 +279,27 @@ function handleSaveAll(payload) {
 
   // 1. Save to PropertiesService
   if (payload.scores)     { propSet(KEY_SCORES, payload.scores);     saved.push('scores'); }
-  if (payload.points)     { propSet(KEY_POINTS, payload.points);     saved.push('points'); }
   if (payload.bookChecks) { propSet(KEY_BOOKS, payload.bookChecks);  saved.push('bookChecks'); }
   if (payload.students)   { propSet(KEY_STUDENTS, payload.students); saved.push('students'); }
   if (payload.settings)   { propSet(KEY_SETTINGS, payload.settings); saved.push('settings'); }
+
+  // Points: simpan dengan had saiz — trim log jika terlalu besar
+  if (payload.points) {
+    try {
+      // Trim setiap student log kepada 20 entri terbaru untuk jimat ruang
+      const trimmed = {};
+      Object.entries(payload.points).forEach(([key, val]) => {
+        trimmed[key] = {
+          total: val.total || 0,
+          log: (val.log || []).slice(0, 20)
+        };
+      });
+      propSet(KEY_POINTS, trimmed);
+      saved.push('points');
+    } catch (e) {
+      Logger.log('Points save gagal (quota?): ' + e.message + ' — skip');
+    }
+  }
 
   Logger.log('Properties saved: ' + saved.join(', ') + ' (' + incomingCount + ' rekod TP)');
 
@@ -311,7 +328,16 @@ function handleSavePart(payload) {
 
   if (part === 'scores') {
     if (payload.scores !== undefined)     { propSet(KEY_SCORES, payload.scores);    saved.push('scores'); }
-    if (payload.points !== undefined)     { propSet(KEY_POINTS, payload.points);    saved.push('points'); }
+    if (payload.points !== undefined) {
+      try {
+        const trimmed = {};
+        Object.entries(payload.points).forEach(([k, v]) => {
+          trimmed[k] = { total: v.total || 0, log: (v.log || []).slice(0, 20) };
+        });
+        propSet(KEY_POINTS, trimmed);
+        saved.push('points');
+      } catch (e) { Logger.log('Points save gagal: ' + e.message); }
+    }
     if (payload.bookChecks !== undefined) { propSet(KEY_BOOKS, payload.bookChecks); saved.push('bookChecks'); }
   } else if (part === 'meta') {
     if (payload.students !== undefined)   { propSet(KEY_STUDENTS, payload.students); saved.push('students'); }
@@ -559,7 +585,7 @@ function handleImportFromSheets() {
   // Auto-cleanup: padam key lama untuk bebaskan ruang
   const props = PropertiesService.getScriptProperties();
   const all = props.getProperties();
-  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'ANTHROPIC_API_KEY'];
+  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'rpm_points', 'ANTHROPIC_API_KEY'];
   let cleaned = 0;
   Object.keys(all).forEach(k => {
     if (!keepPrefixes.some(p => k.startsWith(p))) {
@@ -650,8 +676,8 @@ function handleImportFromSheets() {
 function handleCleanup() {
   const props = PropertiesService.getScriptProperties();
   const all = props.getProperties();
-  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'ANTHROPIC_API_KEY'];
-  // Padam: rpm_points (terlalu besar), rpm_rpt, rpm_rph, rpm_scores_sci, rpm_scores_eng, test_key, rpm_version, rpm_last_saved
+  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'rpm_points', 'ANTHROPIC_API_KEY'];
+  // Padam: rpm_rpt, rpm_rph, rpm_scores_sci, rpm_scores_eng, test_key, rpm_version, rpm_last_saved
   let deleted = [];
   Object.keys(all).forEach(k => {
     const keep = keepPrefixes.some(p => k.startsWith(p));
