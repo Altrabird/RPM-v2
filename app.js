@@ -2048,20 +2048,28 @@ async function gasGet(url, params) {
   }
 }
 
+function countLocalScores() {
+  let n = 0;
+  Object.values(state.scores?.science || {}).forEach(stu =>
+    Object.values(stu || {}).forEach(topic =>
+      { n += Object.keys(topic || {}).length; }));
+  Object.values(state.scores?.english || {}).forEach(stu =>
+    Object.values(stu || {}).forEach(topic =>
+      { n += Object.keys(topic || {}).length; }));
+  return n;
+}
+
 async function syncToSheets() {
   const url = state.settings.scriptURL;
   if (!url || !url.includes('script.google.com')) {
     setSyncStatus('offline', 'URL belum dikonfigurasi');
     return;
   }
-  // Jangan overwrite Sheets jika local data kosong
-  const hasScores = Object.keys(state.scores?.science || {}).length > 0
-                 || Object.keys(state.scores?.english || {}).length > 0;
-  const hasStudents = Object.keys(state.students?.science || {}).length > 0
-                   || (state.students?.english || []).length > 0;
-  if (!hasScores && !hasStudents) {
-    showToast('Tiada data untuk sync. Data akan dimuat dari Sheets.', 'warning');
-    loadFromSheets();
+  // Jangan sync jika tiada skor langsung
+  const localCount = countLocalScores();
+  if (localCount === 0) {
+    console.log('syncToSheets dibatalkan: 0 skor tempatan');
+    setSyncStatus('online', 'Tiada data');
     return;
   }
   setSyncStatus('syncing', 'Menyimpan...');
@@ -2099,15 +2107,7 @@ async function loadFromSheets() {
     if (data.error) throw new Error(data.error);
 
     const serverScoreCount = data._meta?.scoreCount || 0;
-
-    // Count local scores
-    let localScoreCount = 0;
-    Object.values(state.scores?.science || {}).forEach(stu =>
-      Object.values(stu || {}).forEach(topic =>
-        { localScoreCount += Object.keys(topic || {}).length; }));
-    Object.values(state.scores?.english || {}).forEach(stu =>
-      Object.values(stu || {}).forEach(topic =>
-        { localScoreCount += Object.keys(topic || {}).length; }));
+    const localScoreCount = countLocalScores();
 
     console.log('Sync: server has', serverScoreCount, 'scores, local has', localScoreCount);
 

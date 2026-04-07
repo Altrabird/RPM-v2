@@ -246,6 +246,34 @@ function handleLoadAll() {
 // ─── SAVE ALL (main sync from RPM app) ──────────────────────────
 function handleSaveAll(payload) {
   const t0 = new Date();
+
+  // PERLINDUNGAN: Tolak jika scores kosong — jangan timpa data sedia ada
+  const incomingScores = payload.scores || {};
+  let incomingCount = 0;
+  Object.values(incomingScores).forEach(subj =>
+    Object.values(subj || {}).forEach(stu =>
+      Object.values(stu || {}).forEach(topic =>
+        { incomingCount += Object.keys(topic || {}).length; })));
+
+  if (incomingCount === 0) {
+    // Semak jika server ada data — jangan benarkan timpa dengan kosong
+    const existing = propGet(KEY_SCORES) || { science: {}, english: {} };
+    let existingCount = 0;
+    Object.values(existing).forEach(subj =>
+      Object.values(subj || {}).forEach(stu =>
+        Object.values(stu || {}).forEach(topic =>
+          { existingCount += Object.keys(topic || {}).length; })));
+
+    if (existingCount > 0) {
+      Logger.log('DITOLAK: Cuba timpa ' + existingCount + ' rekod dengan data kosong!');
+      return jsonResponse({
+        ok: false,
+        error: 'Ditolak: data masuk kosong (0 rekod) tetapi server ada ' + existingCount + ' rekod. Guna ?action=importFromSheets untuk pulihkan.',
+        existingCount
+      });
+    }
+  }
+
   let saved = [];
 
   // 1. Save to PropertiesService
@@ -255,7 +283,7 @@ function handleSaveAll(payload) {
   if (payload.students)   { propSet(KEY_STUDENTS, payload.students); saved.push('students'); }
   if (payload.settings)   { propSet(KEY_SETTINGS, payload.settings); saved.push('settings'); }
 
-  Logger.log('Properties saved: ' + saved.join(', '));
+  Logger.log('Properties saved: ' + saved.join(', ') + ' (' + incomingCount + ' rekod TP)');
 
   // 2. Also write to visible Sheets tabs
   let sheetsResult = null;
