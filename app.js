@@ -2111,37 +2111,37 @@ async function loadFromSheets() {
 
     console.log('Sync: server has', serverScoreCount, 'scores, local has', localScoreCount);
 
-    // If server has MORE data, use server data
+    // Sentiasa ambil students & settings dari server jika ada
+    if (data.students) state.students = data.students;
+    if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
+
+    // Merge points & bookChecks
+    if (data.points && Object.keys(data.points).length > 0) {
+      state.points = Object.assign({}, state.points, data.points);
+    }
+    if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
+      state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
+    }
+
+    // Scores: ambil dari mana yang lebih banyak
     if (serverScoreCount > 0 && serverScoreCount >= localScoreCount) {
       state.scores = data.scores;
-      if (data.students) state.students = data.students;
-      if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
-      if (data.points && Object.keys(data.points).length > 0) {
-        state.points = Object.assign({}, state.points, data.points);
-      }
-      if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
-        state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
-      }
-      saveLocal();
-      setSyncStatus('online', 'Dimuat \u2714');
-      updatePendingBadge();
-      const activePage = document.querySelector('.nav-item.active')?.dataset?.page || 'dashboard';
-      navigateTo(activePage);
       showToast('Dimuat dari Sheets: ' + serverScoreCount + ' rekod TP', 'success');
-    }
-    // If server is EMPTY but local has data — push local to server (recovery)
-    else if (serverScoreCount === 0 && localScoreCount > 0) {
-      console.log('Server kosong, local ada ' + localScoreCount + ' scores. Auto-push ke server...');
-      setSyncStatus('syncing', 'Memulihkan data...');
-      showToast('Server kosong — memulihkan ' + localScoreCount + ' rekod dari cache tempatan...', 'warning');
-      await syncToSheets();
-    }
-    // Both empty or local has more — keep local, just mark as connected
-    else {
-      if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
+    } else if (serverScoreCount === 0 && localScoreCount > 0) {
+      console.log('Server kosong, local ada ' + localScoreCount + ' scores. Auto-push...');
+      showToast('Memulihkan ' + localScoreCount + ' rekod ke server...', 'warning');
       saveLocal();
-      setSyncStatus('online', 'Bersambung \u2714');
+      await syncToSheets();
+      return;
+    } else {
+      showToast('Bersambung — ' + Math.max(serverScoreCount, localScoreCount) + ' rekod', 'success');
     }
+
+    saveLocal();
+    setSyncStatus('online', 'Dimuat \u2714');
+    updatePendingBadge();
+    const activePage = document.querySelector('.nav-item.active')?.dataset?.page || 'dashboard';
+    navigateTo(activePage);
   } catch(e) {
     setSyncStatus('error', 'Gagal muat');
     showToast('Gagal load: ' + e.message, 'error');
