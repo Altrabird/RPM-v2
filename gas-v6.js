@@ -82,6 +82,7 @@ function doGet(e) {
     if (action === 'loadAll')          return handleLoadAll();
     if (action === 'ping')             return jsonResponse({ ok: true, version: '6.0', time: new Date().toISOString() });
     if (action === 'debug')            return handleDebug();
+    if (action === 'cleanup')          return handleCleanup();
     if (action === 'importFromSheets') return handleImportFromSheets();
 
     return jsonResponse({ ok: true, version: '6.0', message: 'RPM GAS v6.0. Guna ?action=ping atau ?action=loadAll' });
@@ -554,6 +555,20 @@ function writeAllSheets() {
 // ─── IMPORT FROM SHEETS → PropertiesService ──────────────────────
 function handleImportFromSheets() {
   Logger.log('handleImportFromSheets dipanggil');
+
+  // Auto-cleanup: padam key lama untuk bebaskan ruang
+  const props = PropertiesService.getScriptProperties();
+  const all = props.getProperties();
+  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'ANTHROPIC_API_KEY'];
+  let cleaned = 0;
+  Object.keys(all).forEach(k => {
+    if (!keepPrefixes.some(p => k.startsWith(p))) {
+      props.deleteProperty(k);
+      cleaned++;
+    }
+  });
+  Logger.log('Cleanup: removed ' + cleaned + ' old keys');
+
   const ss = getSpreadsheet();
 
   // Build SP → topicId lookup
@@ -629,6 +644,24 @@ function handleImportFromSheets() {
 
   Logger.log('importFromSheets: ' + imported + ' rekod, ' + skipped + ' dilangkau');
   return jsonResponse({ ok: true, imported, skipped });
+}
+
+// ─── CLEANUP — padam key lama untuk bebaskan ruang ──────────────
+function handleCleanup() {
+  const props = PropertiesService.getScriptProperties();
+  const all = props.getProperties();
+  const keepPrefixes = ['rpm_scores', 'rpm_students', 'rpm_settings', 'rpm_bookChecks', 'ANTHROPIC_API_KEY'];
+  // Padam: rpm_points (terlalu besar), rpm_rpt, rpm_rph, rpm_scores_sci, rpm_scores_eng, test_key, rpm_version, rpm_last_saved
+  let deleted = [];
+  Object.keys(all).forEach(k => {
+    const keep = keepPrefixes.some(p => k.startsWith(p));
+    if (!keep) {
+      props.deleteProperty(k);
+      deleted.push(k);
+    }
+  });
+  Logger.log('Cleanup: deleted ' + deleted.length + ' keys');
+  return jsonResponse({ ok: true, deleted: deleted.length, keys: deleted });
 }
 
 // ─── DEBUG ───────────────────────────────────────────────────────
