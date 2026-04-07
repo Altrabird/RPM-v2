@@ -47,7 +47,7 @@ let state = {
     code: 'XBA3051',
     teacher: 'Harsidi bin Junick',
     year: new Date().getFullYear().toString(),
-    scriptURL: 'https://script.google.com/macros/s/AKfycbwfIJTqmYZ6_jns1aBitpMs44fft8i9qk7tDqe9rvt_CVYxe3VROcg1N2dpWTGCefcL2w/exec'
+    scriptURL: 'https://script.google.com/macros/s/AKfycbxSC_JeM1PFpHDZdBaLF-jnVc86GipnT8jyBj8blHsKSQUqp_2d90IajLN3LgNWn5ZUkA/exec'
   },
   students: JSON.parse(JSON.stringify(INITIAL_STUDENTS)),
   scores:     { science: {}, english: {} },
@@ -92,7 +92,7 @@ function loadLocal() {
       state = Object.assign({}, state, parsed);
       state.settings   = Object.assign({}, state.settings, parsed.settings || {});
       // Sentiasa guna URL GAS v6 terbaru
-      state.settings.scriptURL = 'https://script.google.com/macros/s/AKfycbwfIJTqmYZ6_jns1aBitpMs44fft8i9qk7tDqe9rvt_CVYxe3VROcg1N2dpWTGCefcL2w/exec';
+      state.settings.scriptURL = 'https://script.google.com/macros/s/AKfycbxSC_JeM1PFpHDZdBaLF-jnVc86GipnT8jyBj8blHsKSQUqp_2d90IajLN3LgNWn5ZUkA/exec';
       if (!state.students) state.students = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
       if (!state.students.science) state.students.science = JSON.parse(JSON.stringify(INITIAL_STUDENTS.science));
       if (!state.students.english || !Array.isArray(state.students.english)) state.students.english = [...INITIAL_STUDENTS.english];
