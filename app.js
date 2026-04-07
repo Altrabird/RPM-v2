@@ -218,7 +218,7 @@ function tpBadge(avg) {
 function scheduleSyncAutoSave() {
   clearTimeout(syncTimer);
   if (!state.settings.scriptURL || state.settings.scriptURL.includes('script.google.com') === false) return;
-  syncTimer = setTimeout(syncToSheets, 1500);
+  syncTimer = setTimeout(syncToSheets, 3000);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2000,26 +2000,24 @@ function setSyncStatus(status, text) {
 }
 
 async function gasRequest(url, payload) {
-  const form = new URLSearchParams();
-  form.append('data', JSON.stringify(payload));
-
   try {
+    // Send as JSON body — faster & no URL-encoding size limits
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
       redirect: 'follow'
     });
 
     const text = await res.text();
     if (text.trim().startsWith('<')) {
-      throw new Error('Apps Script mengembalikan HTML bukan JSON. Semak deployment (Execute as: Me, Access: Anyone) dan pastikan anda authorize akses.');
+      throw new Error('Apps Script mengembalikan HTML bukan JSON. Sila deploy semula GAS v6 (New deployment, bukan edit lama).');
     }
     return JSON.parse(text);
   } catch(e) {
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('CORS')) {
       if (location.protocol === 'file:') {
-        throw new Error('CORS disekat kerana file:// \u2014 Sila buka app melalui web server atau GitHub Pages.');
+        throw new Error('CORS disekat kerana file:// \u2014 Sila buka app melalui GitHub Pages.');
       }
     }
     throw e;
@@ -2052,9 +2050,11 @@ async function syncToSheets() {
     return;
   }
   // Jangan overwrite Sheets jika local data kosong
-  const hasData = Object.keys(state.students || {}).length > 0
-               || Object.keys(state.scores || {}).length > 0;
-  if (!hasData) {
+  const hasScores = Object.keys(state.scores?.science || {}).length > 0
+                 || Object.keys(state.scores?.english || {}).length > 0;
+  const hasStudents = Object.keys(state.students?.science || {}).length > 0
+                   || (state.students?.english || []).length > 0;
+  if (!hasScores && !hasStudents) {
     showToast('Tiada data untuk sync. Data akan dimuat dari Sheets.', 'warning');
     loadFromSheets();
     return;
@@ -2071,27 +2071,37 @@ async function syncToSheets() {
     };
     const data = await gasRequest(url, payload);
     if (data.error) throw new Error(data.error);
+    const ms = data.ms ? ` (${data.ms}ms)` : '';
+    const rec = data.sheets?.records ? ` \u2022 ${data.sheets.records} rekod` : '';
     setSyncStatus('online', 'Synced \u2714');
-    showToast('Data disimpan ke Sheets.', 'success');
+    showToast('Data disimpan ke Google Sheets' + rec + ms, 'success');
   } catch(e) {
     setSyncStatus('error', 'Sync gagal');
     showToast('Sync gagal: ' + e.message, 'error');
+    console.error('syncToSheets error:', e);
   }
 }
 
 async function loadFromSheets() {
   const url = state.settings.scriptURL;
   if (!url || !url.includes('script.google.com')) {
-    showToast('Sila konfigurasi URL Apps Script dahulu.', 'warning');
+    setSyncStatus('offline', 'URL belum dikonfigurasi');
     return;
   }
   setSyncStatus('syncing', 'Memuatkan...');
   try {
     const data = await gasGet(url, { action: 'loadAll' });
     if (data.error) throw new Error(data.error);
-    if (data.students)   state.students   = data.students;
-    if (data.scores)     state.scores     = data.scores;
-    if (data.settings)   state.settings   = Object.assign({}, state.settings, data.settings);
+
+    // Overwrite students & scores if Sheets has data
+    if (data.students && (Object.keys(data.students.science || {}).length > 0 || (data.students.english || []).length > 0)) {
+      state.students = data.students;
+    }
+    if (data.scores && (Object.keys(data.scores.science || {}).length > 0 || Object.keys(data.scores.english || {}).length > 0)) {
+      state.scores = data.scores;
+    }
+    if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
+
     // Merge points & bookChecks — keep local data if Sheets kosong
     if (data.points && Object.keys(data.points).length > 0) {
       state.points = Object.assign({}, state.points, data.points);
@@ -2099,14 +2109,21 @@ async function loadFromSheets() {
     if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
       state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
     }
+
     saveLocal();
-    setSyncStatus('online', 'Dimuat dari Sheets');
+    setSyncStatus('online', 'Dimuat \u2714');
     updatePendingBadge();
-    renderDashboard();
-    showToast('Data berjaya dimuat dari Google Sheets!', 'success');
+
+    // Refresh whatever page is currently visible
+    const activePage = document.querySelector('.nav-item.active')?.dataset?.page || 'dashboard';
+    navigateTo(activePage);
+
+    const meta = data._meta || {};
+    showToast('Dimuat dari Sheets: ' + (meta.scoreCount || 0) + ' rekod TP', 'success');
   } catch(e) {
     setSyncStatus('error', 'Gagal muat');
     showToast('Gagal load: ' + e.message, 'error');
+    console.error('loadFromSheets error:', e);
   }
 }
 
