@@ -2098,33 +2098,50 @@ async function loadFromSheets() {
     const data = await gasGet(url, { action: 'loadAll' });
     if (data.error) throw new Error(data.error);
 
-    // Overwrite students & scores if Sheets has data
-    if (data.students && (Object.keys(data.students.science || {}).length > 0 || (data.students.english || []).length > 0)) {
-      state.students = data.students;
-    }
-    if (data.scores && (Object.keys(data.scores.science || {}).length > 0 || Object.keys(data.scores.english || {}).length > 0)) {
+    const serverScoreCount = data._meta?.scoreCount || 0;
+
+    // Count local scores
+    let localScoreCount = 0;
+    Object.values(state.scores?.science || {}).forEach(stu =>
+      Object.values(stu || {}).forEach(topic =>
+        { localScoreCount += Object.keys(topic || {}).length; }));
+    Object.values(state.scores?.english || {}).forEach(stu =>
+      Object.values(stu || {}).forEach(topic =>
+        { localScoreCount += Object.keys(topic || {}).length; }));
+
+    console.log('Sync: server has', serverScoreCount, 'scores, local has', localScoreCount);
+
+    // If server has MORE data, use server data
+    if (serverScoreCount > 0 && serverScoreCount >= localScoreCount) {
       state.scores = data.scores;
+      if (data.students) state.students = data.students;
+      if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
+      if (data.points && Object.keys(data.points).length > 0) {
+        state.points = Object.assign({}, state.points, data.points);
+      }
+      if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
+        state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
+      }
+      saveLocal();
+      setSyncStatus('online', 'Dimuat \u2714');
+      updatePendingBadge();
+      const activePage = document.querySelector('.nav-item.active')?.dataset?.page || 'dashboard';
+      navigateTo(activePage);
+      showToast('Dimuat dari Sheets: ' + serverScoreCount + ' rekod TP', 'success');
     }
-    if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
-
-    // Merge points & bookChecks — keep local data if Sheets kosong
-    if (data.points && Object.keys(data.points).length > 0) {
-      state.points = Object.assign({}, state.points, data.points);
+    // If server is EMPTY but local has data — push local to server (recovery)
+    else if (serverScoreCount === 0 && localScoreCount > 0) {
+      console.log('Server kosong, local ada ' + localScoreCount + ' scores. Auto-push ke server...');
+      setSyncStatus('syncing', 'Memulihkan data...');
+      showToast('Server kosong — memulihkan ' + localScoreCount + ' rekod dari cache tempatan...', 'warning');
+      await syncToSheets();
     }
-    if (data.bookChecks && Object.keys(data.bookChecks).length > 0) {
-      state.bookChecks = Object.assign({}, state.bookChecks, data.bookChecks);
+    // Both empty or local has more — keep local, just mark as connected
+    else {
+      if (data.settings) state.settings = Object.assign({}, state.settings, data.settings);
+      saveLocal();
+      setSyncStatus('online', 'Bersambung \u2714');
     }
-
-    saveLocal();
-    setSyncStatus('online', 'Dimuat \u2714');
-    updatePendingBadge();
-
-    // Refresh whatever page is currently visible
-    const activePage = document.querySelector('.nav-item.active')?.dataset?.page || 'dashboard';
-    navigateTo(activePage);
-
-    const meta = data._meta || {};
-    showToast('Dimuat dari Sheets: ' + (meta.scoreCount || 0) + ' rekod TP', 'success');
   } catch(e) {
     setSyncStatus('error', 'Gagal muat');
     showToast('Gagal load: ' + e.message, 'error');
