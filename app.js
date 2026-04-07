@@ -2000,24 +2000,30 @@ function setSyncStatus(status, text) {
 
 async function gasRequest(url, payload) {
   try {
-    // Send as JSON body — faster & no URL-encoding size limits
+    // GAS flow: POST → 302 redirect → browser follows as GET → JSON response
+    // Form-encoded ensures GAS can read e.parameter.data on initial POST
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(JSON.stringify(payload)),
       redirect: 'follow'
     });
 
     const text = await res.text();
+    console.log('GAS response status:', res.status, 'length:', text.length);
+    if (!text.trim()) throw new Error('GAS mengembalikan respons kosong.');
     if (text.trim().startsWith('<')) {
-      throw new Error('Apps Script mengembalikan HTML bukan JSON. Sila deploy semula GAS v6 (New deployment, bukan edit lama).');
+      console.error('GAS HTML response:', text.substring(0, 300));
+      throw new Error('Apps Script mengembalikan HTML. Sila deploy semula GAS v6 (New deployment).');
     }
     return JSON.parse(text);
   } catch(e) {
+    console.error('gasRequest error:', e);
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('CORS')) {
       if (location.protocol === 'file:') {
         throw new Error('CORS disekat kerana file:// \u2014 Sila buka app melalui GitHub Pages.');
       }
+      throw new Error('Gagal hubungi Google Apps Script. Semak sambungan internet.');
     }
     throw e;
   }
