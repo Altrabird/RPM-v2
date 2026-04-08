@@ -21,14 +21,43 @@
 //   7. Authorize → Salin URL baru → Tampal dalam RPM Tetapan
 // ═══════════════════════════════════════════════════════════════════
 
-const SPREADSHEET_ID = ''; // kosong = guna spreadsheet yang sama
+const SPREADSHEET_ID = ''; // kosong = auto (container-bound ATAU auto-create)
+const KEY_SHEET_ID   = 'rpm_sheet_id';
 
 function getSpreadsheet() {
   if (SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  // 1. Cuba spreadsheet terikat (container-bound)
   try {
-    return SpreadsheetApp.getActiveSpreadsheet();
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (_) {}
+
+  // 2. Cuba ID yang disimpan dalam ScriptProperties
+  const props = PropertiesService.getScriptProperties();
+  const savedId = props.getProperty(KEY_SHEET_ID);
+  if (savedId) {
+    try {
+      return SpreadsheetApp.openById(savedId);
+    } catch (e) {
+      Logger.log('Saved sheet id tidak sah, akan create baru: ' + e.message);
+      props.deleteProperty(KEY_SHEET_ID);
+    }
+  }
+
+  // 3. Auto-create spreadsheet baharu dan simpan ID
+  const ss = SpreadsheetApp.create('RPM - Rekod Perkembangan Murid');
+  props.setProperty(KEY_SHEET_ID, ss.getId());
+  Logger.log('Spreadsheet baharu dicipta: ' + ss.getUrl());
+  return ss;
+}
+
+function handleSheetInfo() {
+  try {
+    const ss = getSpreadsheet();
+    return jsonResponse({ ok: true, id: ss.getId(), url: ss.getUrl(), name: ss.getName() });
   } catch (e) {
-    throw new Error('Buka script dari Google Sheets: Extensions → Apps Script');
+    return jsonResponse({ ok: false, error: e.message });
   }
 }
 
@@ -84,6 +113,16 @@ function doGet(e) {
     if (action === 'debug')            return handleDebug();
     if (action === 'cleanup')          return handleCleanup();
     if (action === 'importFromSheets') return handleImportFromSheets();
+    if (action === 'sheetInfo')        return handleSheetInfo();
+    if (action === 'writeSheets')      {
+      try {
+        const r = writeAllSheets();
+        const ss = getSpreadsheet();
+        return jsonResponse({ ok: true, written: r.written, records: r.records, url: ss.getUrl() });
+      } catch (e) {
+        return jsonResponse({ ok: false, error: e.message });
+      }
+    }
 
     return jsonResponse({ ok: true, version: '6.0', message: 'RPM GAS v6.0. Guna ?action=ping atau ?action=loadAll' });
   } catch (err) {
