@@ -114,6 +114,13 @@ function doGet(e) {
     if (action === 'cleanup')          return handleCleanup();
     if (action === 'importFromSheets') return handleImportFromSheets();
     if (action === 'sheetInfo')        return handleSheetInfo();
+    if (action === 'resetPoints')      {
+      const props = PropertiesService.getScriptProperties();
+      const all = props.getProperties();
+      const keys = Object.keys(all).filter(k => k === 'rpm_points' || k.startsWith('rpm_points_'));
+      keys.forEach(k => props.deleteProperty(k));
+      return jsonResponse({ ok: true, deleted: keys.length, keys });
+    }
     if (action === 'writeSheets')      {
       try {
         const r = writeAllSheets();
@@ -330,7 +337,7 @@ function handleSaveAll(payload) {
       Object.entries(payload.points).forEach(([key, val]) => {
         trimmed[key] = {
           total: val.total || 0,
-          log: (val.log || []).slice(0, 20)
+          log: (val.log || []).slice(0, 5)
         };
       });
       propSet(KEY_POINTS, trimmed);
@@ -371,7 +378,7 @@ function handleSavePart(payload) {
       try {
         const trimmed = {};
         Object.entries(payload.points).forEach(([k, v]) => {
-          trimmed[k] = { total: v.total || 0, log: (v.log || []).slice(0, 20) };
+          trimmed[k] = { total: v.total || 0, log: (v.log || []).slice(0, 5) };
         });
         propSet(KEY_POINTS, trimmed);
         saved.push('points');
